@@ -20,9 +20,9 @@ namespace DAL
             }
         }
         string cns = AppConfigurtaionServices.Configuration.GetConnectionString("cns");
-        public Model.WorkInfoNo GetModel(int id)
+        public Model.WorkInfo GetModel(int id)
         {
-            using (IDbConnection cn = new MySqlConnection(cns))
+            using (IDbConnection cn=new MySqlConnection(cns))
             {
                 string sql = "select workinfo.*,activity.activityName from workinfo join activity on workinfo.activityId=activity.activityId where workId=@id";
                 return cn.QueryFirstOrDefault<Model.WorkInfoNo>(sql, new { id = id });
@@ -30,15 +30,15 @@ namespace DAL
         }
         public IEnumerable<Model.WorkInfo> GetNew()
         {
-            using (IDbConnection cn = new MySqlConnection(cns))
+            using (IDbConnection cn=new MySqlConnection(cns))
             {
-                string sql = "select * from workinfo where workVerify='审核通过' order by uploadTime desc limit 8 ";
+                string sql = "select * from workinfo where workVerify='审核通过' order by uploadTime desc limit 8";
                 return cn.Query<Model.WorkInfo>(sql);
             }
         }
-        public IEnumerable<Model.WorkInfo>GetRecommend()
+        public IEnumerable<Model.WorkInfo> GetRecommend()
         {
-            using(IDbConnection cn = new MySqlConnection(cns))
+            using (IDbConnection cn = new MySqlConnection(cns))
             {
                 string sql = "select * from workinfo where workVerify='审核通过' and recommend='是' order by recommendTime desc limit 6";
                 return cn.Query<Model.WorkInfo>(sql);
@@ -46,7 +46,7 @@ namespace DAL
         }
         public int GetCount()
         {
-            using (IDbConnection cn = new MySqlConnection(cns))
+            using (IDbConnection cn =new MySqlConnection(cns))
             {
                 string sql = "select count(1) from workinfo";
                 return cn.ExecuteScalar<int>(sql);
@@ -57,15 +57,15 @@ namespace DAL
             using (IDbConnection cn = new MySqlConnection(cns))
             {
                 string sql = "select count(1) from workinfo where activityId in @activityIds";
-                return cn.ExecuteScalar<int>(sql, new { activityIds = activityIds});
+                return cn.ExecuteScalar<int>(sql, new { activityIds = activityIds });
             }
         }
         public IEnumerable<Model.WorkInfoNo> GetPage(Model.WorkPage page)
         {
             using (IDbConnection cn = new MySqlConnection(cns))
             {
-                string sql = "with a as(select row_number over(order by uploadTime desc) as num, workinfo.* from workinfo where activityId in @activityIds)";
-                sql += "select* from a where num between (@pageIndex-1)*@pageSize+1 and @pageIndex*@pageSize;";
+                string sql = "with a as(select row_number() over(order by uploadTime desc) as num,workinfo.* from workinfo where activityId in @activityIds)";
+                sql += "select * from a where num between (@pageIndex-1)*@pageSize+1 and @pageIndex*@pageSize;";
                 return cn.Query<Model.WorkInfoNo>(sql, new { pageIndex = page.pageIndex, pageSize = page.pageSize, activityIds = page.activityIds });
             }
         }
@@ -77,12 +77,12 @@ namespace DAL
                 return cn.ExecuteScalar<int>(sql, new { workName = workName });
             }
         }
-        public IEnumerable<Model.WorkInfoNo> GetFindPage(Model.WorkMyPage page)
+        public IEnumerable<Model.WorkInfoNo> GetFindPage(Model.WorkFindPage page)
         {
             using (IDbConnection cn = new MySqlConnection(cns))
             {
                 string sql = "with a as(select row_number() over(order by uploadTime desc) as num, workinfo.*,activityName from workinfo join activity on  workinfo.activityId=activity.activityId where workverify='审核通过' and workName like concat('%',@workName,'%'))";
-                sql += "select* from a where num between (@pageIndex-1)*@pageSize+1 and @pageIndex*@pageSize";
+                sql += "select * from a where num between (@pageIndex-1)*@pageSize+1 and @pageIndex*@pageSize;";
                 return cn.Query<Model.WorkInfoNo>(sql, page);
             }
         }
@@ -90,16 +90,16 @@ namespace DAL
         {
             using (IDbConnection cn = new MySqlConnection(cns))
             {
-                string sql = "select coutn(1) from workinfo where userName=@userName";
+                string sql = "select count(1) from workinfo where userName=@userName";
                 return cn.ExecuteScalar<int>(sql, new { userName = userName });
             }
         }
-        public IEnumerable<Model.WorkInfoNo> GetMyPage(Model.WorkPage page)
+        public IEnumerable<Model.WorkInfoNo> GetMyPage(Model.WorkMyPage page)
         {
-            using (IDbConnection cn = new MySqlConnection(cns))
+            using (IDbConnection cn=new MySqlConnection(cns))
             {
                 string sql = "with a as(select row_number() over(order by uploadTime desc) as num, workinfo.*,activityName from workinfo join activity on  workinfo.activityId=activity.activityId where workinfo.userName=@userName)";
-                sql += "select* from a where num between (@pageIndex-1)*@pageSize+1 and @pageIndex*@pageSize;";
+                sql += "select * from a where num between (@pageIndex-1)*@pageSize+1 and @pageIndex*@pageSize;";
                 return cn.Query<Model.WorkInfoNo>(sql, page);
             }
         }
@@ -107,8 +107,7 @@ namespace DAL
         {
             using (IDbConnection cn = new MySqlConnection(cns))
             {
-                string sql = "insert into workinfo(workId,workName,workPicture,uploadTime,workIntroduction,workVerify,userName,activityId,recommend,recommendTime)" +
-                    "values(@workId,@workName,@workPicture,@uploadTime,@workIntroduction,@workVerify,@userName,@activityId,@recommend,@recommendTime);";
+                string sql = "insert into workinfo(workId,workName,workPicture,uploadTime,workIntroduction,workVerify,userName,activityId,recommend,recommendTime) " + "values(@workId,@workName,@workPicture,@uploadTime,@workIntroduction,@workVerify,@userName,@recommend,@recommendTime);";
                 sql += "SELECT @@IDENTITY";
                 return cn.ExecuteScalar<int>(sql, workinfo);
             }
@@ -117,8 +116,7 @@ namespace DAL
         {
             using (IDbConnection cn = new MySqlConnection(cns))
             {
-                string sql = "update workinfo set workName=@workName,workPicture=@workPicture,uploadTime=@uploadTime,workIntroduction=@workIntroduction,workVerify=@workVerify," +
-                    "userName=@userName,recommend=@recommend,recommendTime=@recommendTime where workId=@workId";
+                string sql = "update workinfo set workName=@workName,workPicture=@workPicture,uploadTime=@uploadTime,workIntroduction=@workIntroduction,workVerify=@workVerify," + "userName=@userName,recommend=@recommend,recommendTime=@recommendTime where workId=@workId";
                 return cn.Execute(sql, workinfo);
             }
         }
@@ -153,9 +151,8 @@ namespace DAL
             using (IDbConnection cn = new MySqlConnection(cns))
             {
                 string sql = "update workinfo set recommend=@recommend,recommendTime=@recommendTime where workId=@workId";
-                return cn.Execute(sql,workinfo);
+                return cn.Execute(sql, workinfo);
             }
         }
     }
-    
 }
